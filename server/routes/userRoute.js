@@ -1,0 +1,18 @@
+import express from "express";
+import {
+  isAuth,
+  login,
+  logout,
+  register,
+} from "../controllers/userControllers.js";
+import authUser from "../middlewares/authUser.js";
+
+const userRouter = express.Router();
+
+//Used to send data and create a resource
+userRouter.post("/register", register);
+userRouter.post("/login", login);
+userRouter.get("/is-auth", authUser, isAuth);
+userRouter.get("/logout", authUser, logout);
+
+export default userRouter;
