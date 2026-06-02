@@ -8,7 +8,6 @@ import User from "../models/User.js";
 // Place Order COD : /api/order/cod
 export const placeOrderCOD = async (req, res) => {
   try {
-
     const { items, address } = req.body;
 
     const userId = req.user.id;
@@ -24,7 +23,6 @@ export const placeOrderCOD = async (req, res) => {
     let amount = 0;
 
     for (const item of items) {
-
       const product = await Product.findById(item.product);
 
       if (!product) {
@@ -59,9 +57,7 @@ export const placeOrderCOD = async (req, res) => {
       success: true,
       message: "Order placed successfully",
     });
-
   } catch (error) {
-
     console.log(error);
 
     return res.json({
@@ -74,7 +70,6 @@ export const placeOrderCOD = async (req, res) => {
 // Place Order Stripe : /api/order/stripe
 export const placeOrderStripe = async (req, res) => {
   try {
-
     const { items, address } = req.body;
 
     const userId = req.user.id;
@@ -94,7 +89,6 @@ export const placeOrderStripe = async (req, res) => {
 
     // Calculate Amount
     for (const item of items) {
-
       const product = await Product.findById(item.product);
 
       if (!product) {
@@ -166,9 +160,7 @@ export const placeOrderStripe = async (req, res) => {
       success: true,
       url: session.url,
     });
-
   } catch (error) {
-
     console.log(error);
 
     return res.json({
@@ -179,7 +171,9 @@ export const placeOrderStripe = async (req, res) => {
 };
 
 // Stripe Webhooks : /stripe
+// Stripe Webhooks : /stripe
 export const stripeWebhooks = async (request, response) => {
+  console.log("========== WEBHOOK HIT ==========");
 
   const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -188,23 +182,23 @@ export const stripeWebhooks = async (request, response) => {
   let event;
 
   try {
-
     event = stripeInstance.webhooks.constructEvent(
       request.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
+    console.log("Event Type:", event.type);
   } catch (error) {
+    console.log("Webhook Error:", error.message);
 
-    console.log(error.message);
-
-    return response.status(400).send(`Webhook Error: ${error.message}`);
+    return response.status(400).send(
+      `Webhook Error: ${error.message}`
+    );
   }
 
   switch (event.type) {
 
-    // PAYMENT SUCCESS
     case "checkout.session.completed": {
 
       const session = event.data.object;
@@ -214,18 +208,19 @@ export const stripeWebhooks = async (request, response) => {
       const orderId = session.metadata?.orderId;
       const userId = session.metadata?.userId;
 
+      console.log("Order ID:", orderId);
+      console.log("User ID:", userId);
+
       if (!orderId || !userId) {
         console.log("Metadata missing");
         break;
       }
 
-      // Mark order as paid
       await Order.findByIdAndUpdate(orderId, {
         isPaid: true,
         paymentType: "Online",
       });
 
-      // Clear cart
       await User.findByIdAndUpdate(userId, {
         cartItems: {},
       });
@@ -235,15 +230,15 @@ export const stripeWebhooks = async (request, response) => {
       break;
     }
 
-    // PAYMENT FAILED / EXPIRED
     case "checkout.session.expired": {
 
       const session = event.data.object;
 
-      const { orderId } = session.metadata;
+      const orderId = session.metadata?.orderId;
 
-      // Delete failed order
-      await Order.findByIdAndDelete(orderId);
+      if (orderId) {
+        await Order.findByIdAndDelete(orderId);
+      }
 
       console.log("Payment Failed");
 
@@ -263,7 +258,6 @@ export const stripeWebhooks = async (request, response) => {
 // Get Orders By User Id : /api/order/user
 export const getUserOrders = async (req, res) => {
   try {
-
     const userId = req.user.id;
 
     const orders = await Order.find({
@@ -280,9 +274,7 @@ export const getUserOrders = async (req, res) => {
       success: true,
       orders,
     });
-
   } catch (error) {
-
     return res.json({
       success: false,
       message: error.message,
@@ -293,7 +285,6 @@ export const getUserOrders = async (req, res) => {
 // Get All Orders (Seller/Admin) : /api/order/seller
 export const getAllOrders = async (req, res) => {
   try {
-
     const orders = await Order.find({
       $or: [{ paymentType: "COD" }, { isPaid: true }],
     })
@@ -307,9 +298,7 @@ export const getAllOrders = async (req, res) => {
       success: true,
       orders,
     });
-
   } catch (error) {
-
     return res.json({
       success: false,
       message: error.message,
