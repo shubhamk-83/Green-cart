@@ -24,7 +24,7 @@ connectCloudinary();
 
 // Allowed Frontend Origins
 const allowedOrigins = [
-  "http://localhost:5173",
+  'http://localhost:5173','https://green-cart-tau-seven.vercel.app'
 ];
 
 // CORS Middleware
