@@ -179,7 +179,7 @@ export const stripeWebhooks = async (request, response) => {
     event = stripeInstance.webhooks.constructEvent(
       request.body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET,
+      process.env.STRIPE_WEBHOOK_SECRET
     );
 
     console.log("Event Type:", event.type);
@@ -215,7 +215,7 @@ export const stripeWebhooks = async (request, response) => {
             paymentType: "Online",
             status: "Order Placed",
           },
-          { new: true },
+          { new: true }
         );
 
         console.log("Updated Order:", updatedOrder);
