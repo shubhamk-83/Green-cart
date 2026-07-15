@@ -115,9 +115,14 @@ const ProductDetails = () => {
                 className="w-full py-3.5 cursor-pointer font-medium bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition">
                 Add to Cart
               </button>
-
+              {/* Buy Now */}
               <button
                 onClick={() => {
+                  if (!user) {
+                    setshowUserLogin(true);
+                    return;
+                  }
+
                   addToCart(product._id);
                   navigate("/cart");
                 }}

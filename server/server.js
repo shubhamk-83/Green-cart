@@ -16,15 +16,12 @@ import { stripeWebhooks } from "./controllers/orderController.js";
 
 const app = express();
 
-// Database Connection
-connectDB();
-
-// Cloudinary Connection
-connectCloudinary();
+// Trust proxy (needed for secure cookies behind hosting platforms like Vercel/Render)
+app.set("trust proxy", 1);
 
 // Allowed Frontend Origins
 const allowedOrigins = [
-  'http://localhost:5173','https://green-cart-tau-seven.vercel.app'
+  'http://localhost:5173'
 ];
 
 // CORS Middleware
@@ -41,7 +38,7 @@ app.use(
   })
 );
 
-// Stripe Webhook Route
+// Stripe Webhook Route (must come before express.json())
 app.post(
   "/stripe",
   express.raw({ type: "application/json" }),
@@ -68,7 +65,21 @@ app.use("/api/order", orderRouter);
 // Server Port
 const PORT = process.env.PORT || 4000;
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start Server after DB & Cloudinary are ready
+const startServer = async () => {
+  try {
+    await connectDB();
+    await connectCloudinary();
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
+
+export default app;

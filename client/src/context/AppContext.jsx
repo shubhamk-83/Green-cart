@@ -68,6 +68,14 @@ export const AppContextProvider = ({ children }) => {
   };
 
   const addToCart = async (itemId) => {
+    // Check if user is logged in
+    if (!user) {
+      toast.error("Please login to add items to your cart");
+      // navigate("/login"); // ya setshowUserLogin(true)
+       setshowUserLogin(true);
+      return;
+    }
+
     let cartData = structuredClone(cartItems);
 
     if (cartData[itemId]) {
@@ -86,65 +94,77 @@ export const AppContextProvider = ({ children }) => {
 
       if (!data.success) {
         toast.error(data.message);
+        return;
       }
+
+      toast.success("Added to Cart");
     } catch (error) {
       toast.error(error.message);
     }
-
-    toast.success("Added to cart");
   };
+// update cart item 
+const updateCartItem = async (itemId, quantity) => {
+  // Check if user is logged in
+  if (!user) {
+    toast.error("Please login first");
+    setshowUserLogin(true);
+    return;
+  }
 
-  const updateCartItem = async (itemId, quantity) => {
-    let cartData = structuredClone(cartItems);
+  let cartData = structuredClone(cartItems);
+  cartData[itemId] = quantity;
 
-    cartData[itemId] = quantity;
+  try {
+    const { data } = await axios.post("/api/cart/update", {
+      userId: user._id,
+      cartItems: cartData,
+    });
 
-    setCartItems(cartData);
-
-    try {
-      const { data } = await axios.post("/api/cart/update", {
-        userId: user._id,
-        cartItems: cartData,
-      });
-
-      if (!data.success) {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
+    if (data.success) {
+      setCartItems(cartData);
+      toast.success("Cart Updated");
+    } else {
+      toast.error(data.message);
     }
-
-    toast.success("Cart Updated");
-  };
-
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+  }
+};
+  // Remove From Cart
   const removeFromCart = async (itemId) => {
-    let cartData = structuredClone(cartItems);
+  // Check if user is logged in
+  if (!user) {
+    toast.error("Please login first");
+    setshowUserLogin(true);
+    return;
+  }
 
-    if (cartData[itemId]) {
-      cartData[itemId] -= 1;
+  let cartData = structuredClone(cartItems);
 
-      if (cartData[itemId] === 0) {
-        delete cartData[itemId];
-      }
+  if (cartData[itemId]) {
+    cartData[itemId]--;
+
+    if (cartData[itemId] <= 0) {
+      delete cartData[itemId];
     }
+  }
 
-    setCartItems(cartData);
+  try {
+    const { data } = await axios.post("/api/cart/update", {
+      userId: user._id,
+      cartItems: cartData,
+    });
 
-    try {
-      const { data } = await axios.post("/api/cart/update", {
-        userId: user._id,
-        cartItems: cartData,
-      });
-
-      if (!data.success) {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      toast.error(error.message);
+    if (data.success) {
+      setCartItems(cartData);
+      toast.success("Removed from Cart");
+    } else {
+      toast.error(data.message);
     }
-
-    toast.success("Removed from Cart");
-  };
+  } catch (error) {
+    toast.error(error.response?.data?.message || error.message);
+  }
+};
 
   // Get cart items count
   const getCartCount = () => {
@@ -197,7 +217,8 @@ export const AppContextProvider = ({ children }) => {
     getCartAmount,
     getCartCount,
     axios,
-    fetchProducts,setCartItems
+    fetchProducts,
+    setCartItems,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
