@@ -167,7 +167,7 @@ export const placeOrderStripe = async (req, res) => {
 // Stripe Webhook : /stripe
 // ==============================
 export const stripeWebhooks = async (request, response) => {
-  console.log("========== WEBHOOK HIT ==========");
+  console.log(" WEBHOOK HIT ");
 
   const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -179,7 +179,7 @@ export const stripeWebhooks = async (request, response) => {
     event = stripeInstance.webhooks.constructEvent(
       request.body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
     );
 
     console.log("Event Type:", event.type);
@@ -208,6 +208,11 @@ export const stripeWebhooks = async (request, response) => {
           break;
         }
 
+        // update order
+
+        const order = await Order.findById(orderId);
+        console.log("Order Before Update:", order);
+
         const updatedOrder = await Order.findByIdAndUpdate(
           orderId,
           {
@@ -215,10 +220,10 @@ export const stripeWebhooks = async (request, response) => {
             paymentType: "Online",
             status: "Order Placed",
           },
-          { new: true }
+          { new: true },
         );
 
-        console.log("Updated Order:", updatedOrder);
+        console.log("Order After Update:", updatedOrder);
 
         await User.findByIdAndUpdate(userId, {
           cartItems: {},

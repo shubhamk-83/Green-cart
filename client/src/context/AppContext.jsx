@@ -48,6 +48,12 @@ export const AppContextProvider = ({ children }) => {
       }
     } catch (error) {
       setUser(null);
+
+      const guestCart = localStorage.getItem("guestCart");
+
+      if (guestCart) {
+        setCartItems(JSON.parse(guestCart));
+      }
     }
   };
 
@@ -67,15 +73,8 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  //add to cart
   const addToCart = async (itemId) => {
-    // Check if user is logged in
-    if (!user) {
-      toast.error("Please login to add items to your cart");
-      // navigate("/login"); // ya setshowUserLogin(true)
-       setshowUserLogin(true);
-      return;
-    }
-
     let cartData = structuredClone(cartItems);
 
     if (cartData[itemId]) {
@@ -86,85 +85,92 @@ export const AppContextProvider = ({ children }) => {
 
     setCartItems(cartData);
 
+    // Guest User
+    if (!user) {
+      localStorage.setItem("guestCart", JSON.stringify(cartData));
+      toast.success("Added to Cart");
+      return;
+    }
+
+    // Logged In User
     try {
       const { data } = await axios.post("/api/cart/update", {
         userId: user._id,
         cartItems: cartData,
       });
 
-      if (!data.success) {
+      if (data.success) {
+        toast.success("Added to Cart");
+      } else {
         toast.error(data.message);
-        return;
       }
-
-      toast.success("Added to Cart");
     } catch (error) {
       toast.error(error.message);
     }
   };
-// update cart item 
-const updateCartItem = async (itemId, quantity) => {
-  // Check if user is logged in
-  if (!user) {
-    toast.error("Please login first");
-    setshowUserLogin(true);
-    return;
-  }
-
-  let cartData = structuredClone(cartItems);
-  cartData[itemId] = quantity;
-
-  try {
-    const { data } = await axios.post("/api/cart/update", {
-      userId: user._id,
-      cartItems: cartData,
-    });
-
-    if (data.success) {
-      setCartItems(cartData);
-      toast.success("Cart Updated");
-    } else {
-      toast.error(data.message);
+  // update cart item
+  const updateCartItem = async (itemId, quantity) => {
+    // Check if user is logged in
+    if (!user) {
+      toast.error("Please login first");
+      setshowUserLogin(true);
+      return;
     }
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
-  }
-};
+
+    let cartData = structuredClone(cartItems);
+    cartData[itemId] = quantity;
+
+    try {
+      const { data } = await axios.post("/api/cart/update", {
+        userId: user._id,
+        cartItems: cartData,
+      });
+
+      if (data.success) {
+        setCartItems(cartData);
+        toast.success("Cart Updated");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
   // Remove From Cart
   const removeFromCart = async (itemId) => {
-  // Check if user is logged in
-  if (!user) {
-    toast.error("Please login first");
-    setshowUserLogin(true);
-    return;
-  }
-
-  let cartData = structuredClone(cartItems);
-
-  if (cartData[itemId]) {
-    cartData[itemId]--;
-
-    if (cartData[itemId] <= 0) {
-      delete cartData[itemId];
+    // Check if user is logged in
+    if (!user) {
+      toast.error("Please login first");
+      setshowUserLogin(true);
+      return;
     }
-  }
 
-  try {
-    const { data } = await axios.post("/api/cart/update", {
-      userId: user._id,
-      cartItems: cartData,
-    });
+    let cartData = structuredClone(cartItems);
 
-    if (data.success) {
-      setCartItems(cartData);
-      toast.success("Removed from Cart");
-    } else {
-      toast.error(data.message);
+    if (cartData[itemId]) {
+      cartData[itemId]--;
+
+      if (cartData[itemId] <= 0) {
+        delete cartData[itemId];
+      }
     }
-  } catch (error) {
-    toast.error(error.response?.data?.message || error.message);
-  }
-};
+
+    try {
+      const { data } = await axios.post("/api/cart/update", {
+        userId: user._id,
+        cartItems: cartData,
+      });
+
+      if (data.success) {
+        setCartItems(cartData);
+        toast.success("Removed from Cart");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    }
+  };
 
   // Get cart items count
   const getCartCount = () => {
