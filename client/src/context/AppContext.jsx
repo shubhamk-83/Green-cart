@@ -110,16 +110,23 @@ export const AppContextProvider = ({ children }) => {
   };
   // update cart item
   const updateCartItem = async (itemId, quantity) => {
-    // Check if user is logged in
+    let cartData = structuredClone(cartItems);
+
+    cartData[itemId] = quantity;
+
+    if (quantity <= 0) {
+      delete cartData[itemId];
+    }
+
+    setCartItems(cartData);
+
+    // Guest User
     if (!user) {
-      toast.error("Please login first");
-      setshowUserLogin(true);
+      localStorage.setItem("guestCart", JSON.stringify(cartData));
       return;
     }
 
-    let cartData = structuredClone(cartItems);
-    cartData[itemId] = quantity;
-
+    // Logged In User
     try {
       const { data } = await axios.post("/api/cart/update", {
         userId: user._id,
@@ -127,7 +134,6 @@ export const AppContextProvider = ({ children }) => {
       });
 
       if (data.success) {
-        setCartItems(cartData);
         toast.success("Cart Updated");
       } else {
         toast.error(data.message);
@@ -138,13 +144,6 @@ export const AppContextProvider = ({ children }) => {
   };
   // Remove From Cart
   const removeFromCart = async (itemId) => {
-    // Check if user is logged in
-    if (!user) {
-      toast.error("Please login first");
-      setshowUserLogin(true);
-      return;
-    }
-
     let cartData = structuredClone(cartItems);
 
     if (cartData[itemId]) {
@@ -155,6 +154,15 @@ export const AppContextProvider = ({ children }) => {
       }
     }
 
+    setCartItems(cartData);
+
+    // Guest User
+    if (!user) {
+      localStorage.setItem("guestCart", JSON.stringify(cartData));
+      return;
+    }
+
+    // Logged In User
     try {
       const { data } = await axios.post("/api/cart/update", {
         userId: user._id,
@@ -162,7 +170,6 @@ export const AppContextProvider = ({ children }) => {
       });
 
       if (data.success) {
-        setCartItems(cartData);
         toast.success("Removed from Cart");
       } else {
         toast.error(data.message);
@@ -171,7 +178,6 @@ export const AppContextProvider = ({ children }) => {
       toast.error(error.response?.data?.message || error.message);
     }
   };
-
   // Get cart items count
   const getCartCount = () => {
     let totalCount = 0;
