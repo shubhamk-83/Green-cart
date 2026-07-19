@@ -21,9 +21,9 @@ app.set("trust proxy", 1);
 
 // Allowed Frontend Origins
 const allowedOrigins = [
-  'http://localhost:5173'
+  "http://localhost:5173",
+  "https://green-cart-steel-eta.vercel.app",
 ];
-
 // CORS Middleware
 app.use(
   cors({
