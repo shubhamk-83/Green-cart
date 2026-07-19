@@ -1,7 +1,6 @@
 🛒 GreenCart - MERN Grocery Delivery Platform
-🚀 Live Demo
 
-🌐 Website: GreenCart Live Demo
+
 
 📌 Overview
 
@@ -55,23 +54,7 @@ Frontend → Vercel
 Backend → Render
 Database → MongoDB Atlas
 Images → Cloudinary
-📂 Project Structure
-GreenCart
-│
-├── client
-│   ├── components
-│   ├── pages
-│   ├── context
-│   ├── assets
-│   └── App.jsx
-│
-├── server
-│   ├── controllers
-│   ├── models
-│   ├── routes
-│   ├── middleware
-│   ├── configs
-│   └── server.js
+
 
 
 🔐 Authentication
