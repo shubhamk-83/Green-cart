@@ -6,110 +6,113 @@ const ProductCard = ({ product }) => {
   const { currency, addToCart, removeFromCart, cartItems, navigate } =
     useAppContext();
 
-  return (
-    product && (
-      <div
-        onClick={() => {
-          navigate(
-            `/products/${String(product.category).toLowerCase()}/${product._id}`
-          );
+  if (!product) return null;
 
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-          });
-        }}
-        className="border border-gray-500/20 rounded-md md:px-4 px-3 py-2 bg-white min-w-56 max-w-56 w-full"
-      >
-        <div className="group cursor-pointer flex items-center justify-center px-2">
-          <img
-            className="group-hover:scale-105 transition max-w-26 md:max-w-36"
-            src={
-              Array.isArray(product.image)
-                ? product.image[0]
-                : product.image
-            }
-            alt={product.name}
-          />
+  return (
+    <div
+      onClick={() => {
+        navigate(
+          `/products/${String(product.category).toLowerCase()}/${product._id}`
+        );
+
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }}
+      className="w-full bg-white border border-gray-200 rounded-xl p-3 cursor-pointer hover:shadow-lg transition-all duration-300"
+    >
+      {/* Product Image */}
+      <div className="group flex items-center justify-center">
+        <img
+          className="w-full h-32 sm:h-36 md:h-40 object-contain group-hover:scale-105 transition duration-300"
+          src={
+            Array.isArray(product.image)
+              ? product.image[0]
+              : product.image
+          }
+          alt={product.name}
+        />
+      </div>
+
+      {/* Product Details */}
+      <div className="mt-3">
+        <p className="text-xs sm:text-sm text-gray-500">
+          {product.category}
+        </p>
+
+        <h3 className="text-gray-800 font-semibold text-base sm:text-lg truncate">
+          {product.name}
+        </h3>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1 mt-1">
+          {Array(5)
+            .fill("")
+            .map((_, i) => (
+              <img
+                key={i}
+                className="w-3 sm:w-3.5"
+                src={i < 4 ? assets.star_icon : assets.star_dull_icon}
+                alt="star"
+              />
+            ))}
+
+          <span className="text-xs text-gray-500">(4)</span>
         </div>
 
-        <div className="text-gray-500/60 text-sm">
-          <p>{product.category}</p>
-
-          <p className="text-gray-700 font-medium text-lg truncate w-full">
-            {product.name}
-          </p>
-
-          <div className="flex items-center gap-0.5">
-            {Array(5)
-              .fill("")
-              .map((_, i) => (
-                <img
-                  key={i}
-                  className="md:w-3.5 w-3"
-                  src={i < 4 ? assets.star_icon : assets.star_dull_icon}
-                  alt=""
-                />
-              ))}
-
-            <p>(4)</p>
-          </div>
-
-          <div className="flex items-end justify-between mt-3">
-            <p className="md:text-xl text-base font-medium text-primary">
-              {currency} {product.offerPrice}{" "}
-              <span className="text-gray-500/60 md:text-sm text-xs line-through">
-                {currency} {product.price}
-              </span>
+        {/* Price + Cart */}
+        <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <p className="text-primary font-bold text-lg">
+              {currency} {product.offerPrice}
             </p>
 
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className="text-primary"
-            >
-              {!cartItems[product._id] ? (
+            <p className="text-gray-400 text-sm line-through">
+              {currency} {product.price}
+            </p>
+          </div>
+
+          <div
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!cartItems[product._id] ? (
+              <button
+                onClick={() => addToCart(product._id)}
+                className="flex items-center justify-center gap-1 w-20 h-9 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-white transition"
+              >
+                <img
+                  src={assets.cart_icon}
+                  alt="cart"
+                  className="w-4 h-4"
+                />
+                Add
+              </button>
+            ) : (
+              <div className="flex items-center justify-between w-20 h-9 rounded-lg bg-primary/20">
                 <button
-                  type="button"
-                  className="flex items-center justify-center gap-1 bg-primary/10 border border-primary/40 md:w-[80px] w-[64px] h-[34px] rounded text-primary cursor-pointer"
-                  onClick={() => addToCart(product._id)}
+                  onClick={() => removeFromCart(product._id)}
+                  className="w-7 h-full text-lg font-bold"
                 >
-                  <img src={assets.cart_icon} alt="cart_icon" />
-                  Add
+                  -
                 </button>
-              ) : (
-                <div className="flex items-center justify-center gap-2 md:w-20 w-16 h-[34px] bg-primary/25 rounded select-none">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      removeFromCart(product._id);
-                    }}
-                    className="cursor-pointer text-md px-2 h-full"
-                  >
-                    -
-                  </button>
 
-                  <span className="w-5 text-center">
-                    {cartItems[product._id]}
-                  </span>
+                <span className="text-sm font-medium">
+                  {cartItems[product._id]}
+                </span>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      addToCart(product._id);
-                    }}
-                    className="cursor-pointer text-md px-2 h-full"
-                  >
-                    +
-                  </button>
-                </div>
-              )}
-            </div>
+                <button
+                  onClick={() => addToCart(product._id)}
+                  className="w-7 h-full text-lg font-bold"
+                >
+                  +
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
-    )
+    </div>
   );
 };
 
